@@ -10,7 +10,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static by.bsu.kolodyuk.generator.MatchUtil.createMatchMap;
+import static by.bsu.kolodyuk.generator.MatchUtil.createMatchString;
 import static by.bsu.kolodyuk.util.BitsUtil.generateBinaryArraysOfLength;
 import static java.lang.Math.pow;
 import static java.util.Arrays.asList;
@@ -71,22 +74,36 @@ public class SerialTest {
 
         int[] extended = addAll(randomBits, Arrays.copyOf(randomBits, m - 1));
 
-        double first = m > 0 ? generateBinaryArraysOfLength(m).stream().map(i -> numberOfMatches(extended, i))
-                                                                       .mapToDouble(i -> i * i)
-                                                                       .sum() * pow(2, m)/n - n : 0;
-        double second = m > 1 ? generateBinaryArraysOfLength(m-1).stream().map(i -> numberOfMatches(extended, i))
-                                                                          .mapToDouble(i -> i * i)
-                                                                          .sum() * pow(2, m - 1)/n - n : 0;
-        double third = m > 2 ? generateBinaryArraysOfLength(m-2).stream().map(i -> numberOfMatches(extended, i))
-                                                                         .mapToDouble(i -> i * i)
-                                                                         .sum() * pow(2, m - 2)/n - n : 0;
+        double first = 0;
+        if(m > 0) {
+            Map<String, Integer> matchMap = createMatchMap(extended, m, m);
+            first = generateBinaryArraysOfLength(m).stream().map(i -> matchMap.get(createMatchString(i)))
+                                                            .mapToDouble(i -> (double) i * (double) i)
+                                                            .sum() * pow(2, m)/n - n;
+        }
+
+        double second = 0;
+        if(m > 1) {
+            Map<String, Integer> matchMap = createMatchMap(extended, m - 1, m);
+            second = generateBinaryArraysOfLength(m-1).stream().map(i -> matchMap.get(createMatchString(i)))
+                                                               .mapToDouble(i -> (double)i * (double)i)
+                                                               .sum() * pow(2, m - 1)/n - n;
+        }
+
+        double third = 0;
+        if(m > 2) {
+            Map<String, Integer> matchMap = createMatchMap(extended, m - 2, m);
+            third = generateBinaryArraysOfLength(m-2).stream().map(i -> matchMap.get(createMatchString(i)))
+                                                              .mapToDouble(i -> (double)i * (double)i)
+                                                              .sum() * pow(2, m - 2)/n - n;
+        }
 
         System.out.println(first);
         System.out.println(second);
         System.out.println(third);
 
-        double firstDelta = first*first - second*second;
-        double secondDelta = first*first - 2*second*second + third*third;
+        double firstDelta = first - second;
+        double secondDelta = first - 2*second + third;
 
         System.out.println(firstDelta);
         System.out.println(secondDelta);
@@ -116,19 +133,5 @@ public class SerialTest {
         System.out.println(toMatch + " "  + count);
 
         return count;
-    }
-
-    private Map<String, Integer> matchMap(int[] array, int matchLength) {
-        Map<String, Integer> result = new HashMap<>();
-        for(int i = 0; i < array.length - matchLength; i++) {
-            String key = "";
-            for(int j = 0; j < matchLength; j++) {
-                key += array[i + j];
-            }
-            Integer value = result.get(key);
-            result.put(key, value != null ? value++ : 1);
-        }
-
-        return result;
     }
 }
