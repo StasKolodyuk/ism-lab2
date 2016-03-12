@@ -23,6 +23,7 @@ public class LFSRGenerator implements BinaryGenerator {
         return (int) (register & 1L);
     }
 
+
     public long getRegister() {
         return register;
     }
